@@ -41,3 +41,47 @@ function displayStore() {
         buyProducts()
     });
 }
+
+function buyProducts() {
+    inquirer
+        .prompt([
+            {
+                type: "list",
+                message: "Which product would you like to purchase?",
+                choices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                name: "item_id"
+            },
+            {
+                type: "input",
+                message: "How many would you like to purchase?",
+                name: "amount",
+                validate: function (value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        ])
+        .then(function (answer) {
+            connection.query("SELECT * FROM products WHERE item_id=" + answer.item_id,
+            function(err, res) {
+                if (err) throw (err);
+                if (res[0].stock_quanity > answer.amount) {
+                    connection.query("UPDATE products SET stock_quanity=" + (res[0].stock_quanity - answer.amount), " WHERE item_id=" + res.item_id,
+                    function (err, res) {
+                        if (err) throw err;
+                    });
+
+                    console.log("You purchase " + answer.amount + " of " + res[0].product_name + ".");
+                    console.log("Your total comes out to be $" + (res[0].price * answer.amount));
+
+                    displayStore();
+                }
+                else {
+                    console.log("Insufficient quantity!");
+                    displayStore();
+                }
+            })
+        })
+}
