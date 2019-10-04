@@ -96,3 +96,7 @@ function displayLowInventory() {
         managerOptions();
     });    
 }
+
+function addInventory() {
+    
+}
