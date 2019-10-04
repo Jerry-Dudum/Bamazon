@@ -21,34 +21,34 @@ connection.connect(function (err) {
 
 function managerOptions() {
     inquirer
-    .prompt([
-        {
-            type: "list",
-            message: "What would you like to do?",
-            choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add a New Product"],
-            name: "options"
-        }
-    ])
-    .then(function (answer) {
-        switch (answer.options) {
+        .prompt([
+            {
+                type: "list",
+                message: "What would you like to do?",
+                choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add a New Product"],
+                name: "options"
+            }
+        ])
+        .then(function (answer) {
+            switch (answer.options) {
 
-            case "View Products for Sale":
-                displayStore();
-                break;
+                case "View Products for Sale":
+                    displayStore();
+                    break;
 
-            case "View Low Inventory":
-                displayLowInventory();
-                break;
+                case "View Low Inventory":
+                    displayLowInventory();
+                    break;
 
-            case "Add to Inventory":
-                addInventory();
-                break;
+                case "Add to Inventory":
+                    addInventory();
+                    break;
 
-            case "Add a New Product":
-                addProduct();
-                break;
-        }
-    })
+                case "Add a New Product":
+                    addProduct();
+                    break;
+            }
+        })
 }
 
 function displayStore() {
@@ -94,7 +94,7 @@ function displayLowInventory() {
 
         console.log("\n" + table.toString());
         managerOptions();
-    });    
+    });
 }
 
 function addInventory() {
@@ -106,19 +106,63 @@ function addInventory() {
         for (var i = 0; i < res.length; i++) {
             products.push(res[i].product_name);
         }
-        
+
         inquirer
+            .prompt([
+                {
+                    type: "list",
+                    message: "Which product would you like to add inventory to?",
+                    choices: products,
+                    name: "product"
+                },
+                {
+                    type: "input",
+                    message: "How many of this product would you like to add?",
+                    name: "amount",
+                    validate: function (value) {
+                        if (isNaN(value) === false) {
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            ])
+            .then(function (answer) {
+                connection.query("UPDATE products SET stock_quanity = ? WHERE product_name = ?",
+                    [res[products.indexOf(answer.product)].stock_quanity + parseInt(answer.amount), answer.product],
+                    function (err, res) {
+                        if (err) throw err;
+                    });
+                console.log("You added " + answer.amount + " of " + answer.product + ".");
+                managerOptions();
+            })
+
+    });
+}
+
+function addProduct() {
+
+    inquirer
         .prompt([
             {
-                type: "list",
-                message: "Which product would you like to add inventory to?",
-                choices: products,
-                name: "product"
+                type: "input",
+                message: "What is the name of the product you wish to add?",
+                name: "name",
             },
             {
                 type: "input",
-                message: "How many of this product would you like to add?",
-                name: "amount",
+                message: "What is the department of this product?",
+                name: "department",
+            },
+            {
+                type: "input",
+                message: "What is the price of this product?",
+                name: "price",
+            },
+            {
+                type: "input",
+                message: "How much of this product are you adding?",
+                name: "stock",
                 validate: function (value) {
                     if (isNaN(value) === false) {
                         return true;
@@ -128,14 +172,19 @@ function addInventory() {
             }
         ])
         .then(function (answer) {
-            connection.query("UPDATE products SET stock_quanity = ? WHERE product_name = ?",
-                [res[products.indexOf(answer.product)].stock_quanity + parseInt(answer.amount), answer.product],
+            connection.query("INSERT INTO products SET ?",
+                {
+                    product_name: answer.name,
+                    department_name: answer.department,
+                    price: answer.price,
+                    stock_quanity: answer.stock
+                },
                 function (err, res) {
                     if (err) throw err;
-                });
-                console.log("You added " + answer.amount + " of "  + answer.product + ".");
-                managerOptions();
+                    console.log("You successfully added " + answer.name + " to the shop.");
+                    managerOptions();
+                }
+            )
         })
-        
-    });
+
 }
