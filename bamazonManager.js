@@ -98,5 +98,44 @@ function displayLowInventory() {
 }
 
 function addInventory() {
-    
+
+    var products = [];
+
+    connection.query("SELECT * FROM products", function (err, res) {
+        if (err) throw (err);
+        for (var i = 0; i < res.length; i++) {
+            products.push(res[i].product_name);
+        }
+        
+        inquirer
+        .prompt([
+            {
+                type: "list",
+                message: "Which product would you like to add inventory to?",
+                choices: products,
+                name: "product"
+            },
+            {
+                type: "input",
+                message: "How many of this product would you like to add?",
+                name: "amount",
+                validate: function (value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        ])
+        .then(function (answer) {
+            connection.query("UPDATE products SET stock_quanity = ? WHERE product_name = ?",
+                [res[products.indexOf(answer.product)].stock_quanity + parseInt(answer.amount), answer.product],
+                function (err, res) {
+                    if (err) throw err;
+                });
+                console.log("You added " + answer.amount + " of "  + answer.product + ".");
+                managerOptions();
+        })
+        
+    });
 }
