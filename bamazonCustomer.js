@@ -49,7 +49,7 @@ function buyProducts() {
                 type: "list",
                 message: "Which product would you like to purchase?",
                 choices: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                name: "item_id"
+                name: "id"
             },
             {
                 type: "input",
@@ -64,11 +64,14 @@ function buyProducts() {
             }
         ])
         .then(function (answer) {
-            connection.query("SELECT * FROM products WHERE item_id=" + answer.item_id,
+            console.log(answer.id);
+            connection.query("SELECT * FROM products WHERE item_id = ?", [answer.id],
             function(err, res) {
                 if (err) throw (err);
+                console.log(res);
                 if (res[0].stock_quanity > answer.amount) {
-                    connection.query("UPDATE products SET stock_quanity=" + (res[0].stock_quanity - answer.amount), " WHERE item_id=" + res.item_id,
+                    connection.query("UPDATE products SET stock_quanity = ? WHERE item_id = ?", 
+                    [(res[0].stock_quanity - answer.amount), answer.id],
                     function (err, res) {
                         if (err) throw err;
                     });
