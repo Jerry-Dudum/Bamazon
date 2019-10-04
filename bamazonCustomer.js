@@ -64,11 +64,9 @@ function buyProducts() {
             }
         ])
         .then(function (answer) {
-            console.log(answer.id);
             connection.query("SELECT * FROM products WHERE item_id = ?", [answer.id],
             function(err, res) {
                 if (err) throw (err);
-                console.log(res);
                 if (res[0].stock_quanity > answer.amount) {
                     connection.query("UPDATE products SET stock_quanity = ? WHERE item_id = ?", 
                     [(res[0].stock_quanity - answer.amount), answer.id],
